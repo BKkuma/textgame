@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mystic Dungeon Adventure</title>
+</head>
+<body>
+    <pre id="gameText"></pre>
+    <input type="text" id="userInput" autofocus>
+    <script>
+        class Game {
+            constructor() {
+                this.inventory = [];
+                this.output = document.getElementById("gameText");
+                this.input = document.getElementById("userInput");
+                this.input.addEventListener("keypress", (event) => {
+                    if (event.key === "Enter") {
+                        this.handleInput();
+                    }
+                });
+                this.startGame();
+            }
+
+            print(text) {
+                this.output.innerHTML += text + "\n";
+            }
+
+            startGame() {
+                this.inventory = [];
+                this.output.innerHTML = "";
+                this.print("คุณลืมตาขึ้นมาท่ามกลางคุกใต้ดินลึกลับ แสงจากคบเพลิงริบหรี่ คุณต้องหาทางออกให้ได้!");
+                this.print("พิมพ์ 'inventory' เพื่อตรวจสอบไอเทมหรือ 'restart' เพื่อเริ่มใหม่");
+                this.scene1();
+            }
+
+            handleInput() {
+                const userInput = this.input.value.trim().toLowerCase();
+                this.input.value = "";
+                if (userInput === "inventory") {
+                    this.print("คุณมี: " + (this.inventory.length > 0 ? this.inventory.join(", ") : "ไม่มีอะไร"));
+                } else if (userInput === "restart") {
+                    this.startGame();
+                } else if (this.currentCallback) {
+                    this.currentCallback(userInput);
+                }
+            }
+
+            scene1() {
+                this.print("\nคุณพบประตูสองบาน บานหนึ่งทำจากไม้เก่า อีกบานเป็นเหล็กหนา คุณจะเลือกบานไหน? (wood/iron)");
+                this.waitForInput((answer) => {
+                    if (answer === "wood") {
+                        this.print("ประตูไม้เปิดออกอย่างง่ายดาย เผยให้เห็นทางเดินลับ...");
+                        this.scene2();
+                    } else if (answer === "iron") {
+                        this.print("ประตูเหล็กหนักเกินไป คุณต้องหากุญแจ");
+                        this.scene1();
+                    } else {
+                        this.print("เลือกไม่ถูกต้อง ลองใหม่");
+                        this.scene1();
+                    }
+                });
+            }
+
+            scene2() {
+                this.print("\nคุณพบโต๊ะที่มีแผนที่เก่าและมีหีบปิดล็อก คุณจะทำอะไร? (map/chest)");
+                this.waitForInput((answer) => {
+                    if (answer === "map") {
+                        this.print("คุณได้แผนที่ที่ช่วยนำทางไปข้างหน้า!");
+                        this.inventory.push("map");
+                        this.scene3();
+                    } else if (answer === "chest") {
+                        this.print("หีบเปิดออกและพบกุญแจทองคำ!");
+                        this.inventory.push("golden key");
+                        this.scene3();
+                    } else {
+                        this.print("ตัวเลือกไม่ถูกต้อง ลองอีกครั้ง");
+                        this.scene2();
+                    }
+                });
+            }
+
+            scene3() {
+                this.print("\nข้างหน้าคุณมีประตูต้องใช้กุญแจ จะลองใช้กุญแจที่คุณมีไหม? (yes/no)");
+                this.waitForInput((answer) => {
+                    if (answer === "yes" && this.inventory.includes("golden key")) {
+                        this.print("คุณไขกุญแจสำเร็จและผ่านไปได้!");
+                        this.scene4();
+                    } else {
+                        this.print("คุณไม่มีกุญแจ! ลองสำรวจใหม่");
+                        this.scene2();
+                    }
+                });
+            }
+
+            scene4() {
+                this.print("\nคุณพบศัตรูเป็นอัศวินเงา คุณจะต่อสู้หรือหนี? (fight/run)");
+                this.waitForInput((answer) => {
+                    if (answer === "fight") {
+                        this.print("คุณจำเป็นต้องเลือกอาวุธ! (sword/magic)");
+                        this.waitForInput((item) => {
+                            if (item === "sword") {
+                                this.print("คุณใช้ดาบและโค่นอัศวินลงได้!");
+                                this.scene5();
+                            } else if (item === "magic") {
+                                this.print("เวทมนตร์ของคุณแรงเกินไปจนทำให้เกิดการระเบิด!");
+                                this.print("พิมพ์ 'restart' เพื่อเริ่มใหม่");
+                            } else {
+                                this.print("คุณไม่มีอาวุธนี้! ลองอีกครั้ง");
+                                this.scene4();
+                            }
+                        });
+                    } else {
+                        this.print("คุณหนีสำเร็จแต่รู้สึกถึงอันตรายข้างหน้า...");
+                        this.scene5();
+                    }
+                });
+            }
+
+            scene5() {
+                this.print("\nสุดท้ายคุณพบประตูออกจากคุกใต้ดิน คุณจะเปิดมันหรือไม่? (yes/no)");
+                this.waitForInput((answer) => {
+                    if (answer === "yes") {
+                        this.print("คุณออกจากคุกใต้ดินสำเร็จ! ยินดีด้วย!");
+                    } else {
+                        this.print("คุณลังเลและถูกเงาปริศนาเข้าจู่โจม! พิมพ์ 'restart' เพื่อเริ่มใหม่");
+                    }
+                });
+            }
+
+            waitForInput(callback) {
+                this.currentCallback = callback;
+            }
+        }
+
+        let game = new Game();
+    </script>
+</body>
+</html>
